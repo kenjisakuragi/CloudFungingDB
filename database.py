@@ -17,12 +17,20 @@ if not DATABASE_URL:
 # We might need to disable server-side cursors or prepared statements if running in transaction mode,
 # though standard SQLAlchemy usage is usually fine.
 # adding pool_pre_ping to ensure connections are alive.
+# Handle specialized connection parameters for SQLAlchemy/psycopg2
+# The 'pgbouncer=true' flag is useful for some drivers/clients but causes 'invalid dsn' in psycopg2.
+# We remove it for the SQLAlchemy connection string.
+if "pgbouncer=true" in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("?pgbouncer=true", "").replace("&pgbouncer=true", "")
+
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    # For transaction poolers, sometimes 'execution_options={"isolation_level": "AUTOCOMMIT"}' is suggested for simple queries,
-    # but for ORM usage we usually want transactions.
-    # Supabase docs suggest basic connection is fine if using the session pooler.
+    # For Supabase Transaction Mode (port 6543), prepared statements should be disabled
+    # because pgbouncer doesn't support them well in transaction mode.
+    connect_args={
+        "options": "-c plan_cache_mode=force_custom_plan"
+    }
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -1,0 +1,37 @@
+name: Daily Kickstarter Scrape
+
+on:
+  schedule:
+    # 毎日 UTC 0:00 (日本時間 9:00) に実行
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 手動実行用
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip' # 依存関係のキャッシュを有効化
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium --with-deps
+
+    - name: Run Scraper
+      env:
+        # GitHub Secrets から環境変数を読み込む
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      run: |
+        python main.py

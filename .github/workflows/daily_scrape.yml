@@ -1,9 +1,10 @@
 name: Daily Kickstarter Scrape
 
 on:
-  schedule:
-    # 毎日 UTC 0:00 (日本時間 9:00) に実行
-    - cron: '0 0 * * *'
+  # Schedule paused 2026-09-29 (stop automatic runs). Uncomment to resume.
+  # schedule:
+  #   # 毎日 UTC 0:00 (日本時間 9:00) に実行
+  #   - cron: '0 0 * * *'
   workflow_dispatch: # 手動実行用
 
 jobs:
